@@ -58,52 +58,16 @@ public class Chess {
             printBoardToConsole();
 
             // TODO: Homework - Is this really the chess game's responsibility to do the move conversion?
-            //                       Refactor this code to make it the responsibility of a different class.
-            // We'll be doing a simpler notation for our chess game. Notation will be a 5 or 6 character length. Form
-            //       will take the shape of {a-h}{1-8}(\-x}{a-h}{1-8}{rnbqRNBQ}.
-            //       First character is the from file
-            //       Second character is the from rank
-            //       Third character is - for move, x for capture
-            //       Forth character is the to file
-            //       Fifth character is the to rank
-            //       Sixth character is the promotion of a pawn to a piece type. This is optional
-            String move = inputReader.readLine();
-            Pattern movePattern = Pattern.compile("^[a-h][1-8][-x][a-h][1-8][rnbqRNBQ]{0,1}");
-            Matcher moveMatcher = movePattern.matcher(move);
-            if(!moveMatcher.find()) {
-                //Move is invalid;
-                System.out.println("Move is invalid. Please input a valid move.");
-                continue;
-            }
+            //                       Refactor this code to make it the responsibility of a different cla
+            //                       DONE
+            Move move = new Move(inputReader.readLine());
 
-            Square fromSquare = new Square();
-            fromSquare.setFileIndex(calcFileIndex(move.charAt(0)));
-            fromSquare.setRankIndex(calcRankIndex(Integer.valueOf(move.substring(1,2))));
-            boolean capture = (move.charAt(2) == 'x');
-            int toFileIndex = calcFileIndex(move.charAt(3));
-            int toRankIndex = calcRankIndex(Integer.valueOf(move.substring(4,5)));
-
-            String pawnPromotionPiece = null;
-            if(move.length() == 6) {
-                pawnPromotionPiece = move.substring(5,6);
-            }
-
-            Square toSquare = new Square();
-            toSquare.setRankIndex(toRankIndex);
-            toSquare.setFileIndex(toFileIndex);
-
-            Move nextMove = new Move(fromSquare, toSquare)
-
-            if(!capture) {
-                if(pawnPromotionPiece == null)
-                    movePiece(nextMove);
+            //Validate Piece Movement
+            if (validMove(move)) {
+                if (move.isCapture())
+                    capturePiece(move);
                 else
-                    movePiece(nextMove, pawnPromotionPiece);
-            } else {
-                if(pawnPromotionPiece == null)
-                    capturePiece(nextMove);
-                else
-                    movePiece(nextMove, pawnPromotionPiece);
+                    movePiece(move);
             }
             // We are not going to worry about special moves like castling and en passant
         }
@@ -122,57 +86,11 @@ public class Chess {
         int toRankIndex = toSquare.getRankIndex();
         Piece fromPiece = board[fromRankIndex][fromFileIndex];
 
-        //Validate Piece Movement
-        if (!validMove(move)) return;
-
-        //If we have gotten here, that means the move is valid and update the board position
-        board[toRankIndex][toFileIndex] = fromPiece;
-        board[fromRankIndex][fromFileIndex] = null;
-
-        //Change the player's turn
-        playerTurnIsWhite = !playerTurnIsWhite;
-    }
-
-    private void movePiece(Move move, String pawnPromotionPiece) {
-
-        Square fromSquare = move.getFromSquare();
-        Square toSquare = move.getToSquare();
-        int fromFileIndex = fromSquare.getFileIndex();
-        int fromRankIndex = fromSquare.getRankIndex();
-        int toFileIndex = toSquare.getFileIndex();
-        int toRankIndex = toSquare.getRankIndex();
-        Piece fromPiece = board[fromRankIndex][fromFileIndex];
-
-        //Validate Piece Movement
-        if (!validMove(move)) return;
-
-        //Handle the promotion of a pawn.
-        if(fromPiece.toString().equalsIgnoreCase("p")) {
-            if(playerTurnIsWhite && toRankIndex == 0) {
-                if(pawnPromotionPiece == null) {
-                    System.out.println("Pawn Promotion Piece must be specified for this pawn move.");
-                    return;
-                }
-                if(!pawnPromotionPiece.toUpperCase().equals(pawnPromotionPiece)) {
-                    System.out.println("Pawn Promotion Piece must be for White. Input should be uppercase.");
-                    return;
-                }
-                fromPiece = Piece.valueOf(pawnPromotionPiece);
-            } else if(!playerTurnIsWhite && toRankIndex == 7) {
-                if(pawnPromotionPiece == null) {
-                    System.out.println("Pawn Promotion Piece must be specified for this pawn move.");
-                    return;
-                }
-                if(!pawnPromotionPiece.toLowerCase().equals(pawnPromotionPiece)) {
-                    System.out.println("Pawn Promotion Piece must be for Black. Input should be lowercase.");
-                    return;
-                }
-                fromPiece = Piece.valueOf(pawnPromotionPiece);
-            }
-        }
-
-        //If we have gotten here, that means the move is valid and update the board position
-        board[toRankIndex][toFileIndex] = fromPiece;
+        // If we have gotten here, that means the move is valid and update the board position
+        if(move.getPawnPromotionPiece() == null)
+            board[toRankIndex][toFileIndex] = fromPiece;
+        else
+            board[toRankIndex][toFileIndex] = move.getPawnPromotionPiece();
         board[fromRankIndex][fromFileIndex] = null;
 
         //Change the player's turn
@@ -183,6 +101,9 @@ public class Chess {
 
         Square fromSquare = move.getFromSquare();
         Square toSquare = move.getToSquare();
+        if(fromSquare == null || toSquare == null)
+            return false;
+
         int fromFileIndex = fromSquare.getFileIndex();
         int fromRankIndex = fromSquare.getRankIndex();
         int toFileIndex = toSquare.getFileIndex();
@@ -465,70 +386,23 @@ public class Chess {
         //           Use inspiration from the move method. Think about what can be refactored.
         //                     Extract method is your friend.
 
-        if (validMove(move)) {
-            Square fromSquare = move.getFromSquare();
-            Square toSquare = move.getToSquare();
+        //Move piece, if the move is allowed.
+        Square fromSquare = move.getFromSquare();
+        Square toSquare = move.getToSquare();
 
-            if 
+        Piece toPiece = board[toSquare.getFileIndex()][toSquare.getRankIndex()];
+        Piece fromPiece = board[fromSquare.getFileIndex()][fromSquare.getRankIndex()];
 
-
-            //Move piece, if the move is allowed.
-            // TODO: Extract to a move method
-            board[toSquare.getFileIndex()][toSquare.getRankIndex()] = board[fromSquare.getFileIndex()][fromSquare.getRankIndex()];
-            board[fromSquare.getFileIndex()][fromSquare.getRankIndex()] = null;
+        // checks the pieces are opposite colors
+        if((Character.isLowerCase(toPiece.toString().charAt(0)) && Character.isUpperCase((fromPiece.toString().charAt(0))))
+                || (Character.isUpperCase(toPiece.toString().charAt(0)) && Character.isLowerCase((fromPiece.toString().charAt(0))))
+        ){
+            movePiece(move);
         }
     }
 
     //Todo: overload with a capture Piece with a promotion
 
-    private static int calcFileIndex(Character file) {
-        // Files are associated as follows: a->7, b->6, c->5, d->4, e->3, f->2, g->1, h->0
-        switch(file) {
-            case 'a' :
-                return 0;
-            case 'b' :
-                return 1;
-            case 'c' :
-                return 2;
-            case 'd' :
-                return 3;
-            case 'e' :
-                return 4;
-            case 'f' :
-                return 5;
-            case 'g' :
-                return 6;
-            case 'h' :
-                return 7;
-            default :
-                throw new IllegalArgumentException("File Character '" + file + "' is invalid.");
-        }
-    }
-
-    private static int calcRankIndex(int rankNumber) {
-        // Ranks are associated as follows: 1->7, 2->6, 3->5, 4->4, 5->3, 6->2, 7->1, 8->0
-        switch(rankNumber) {
-            case 1 :
-                return 7;
-            case 2 :
-                return 6;
-            case 3 :
-                return 5;
-            case 4 :
-                return 4;
-            case 5 :
-                return 3;
-            case 6 :
-                return 2;
-            case 7 :
-                return 1;
-            case 8 :
-                return 0;
-            default:
-                throw new IllegalArgumentException("Rank Value '" + rankNumber + "' is invalid.");
-
-        }
-    }
 
     private boolean gameIsOver() {
         return isPositionCheckmate() || isPositionStalemate();
